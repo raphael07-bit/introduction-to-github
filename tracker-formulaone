@@ -1,0 +1,106 @@
+flutter create race_tracker
+cd race_tracker
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Race Tracker',
+      theme: ThemeData(
+        primarySwatch: Colors.black,
+      ),
+      home: RaceTrackerScreen(),
+    );
+  }
+}
+
+class RaceTrackerScreen extends StatefulWidget {
+  @override
+  _RaceTrackerScreenState createState() => _RaceTrackerScreenState();
+}
+
+class _RaceTrackerScreenState extends State<RaceTrackerScreen> {
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _positionController = TextEditingController();
+  String _raceData = "Nenhuma corrida registrada ainda.";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  // Função para carregar dados salvos
+  _loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _raceData = prefs.getString('raceData') ?? "Nenhuma corrida registrada ainda.";
+    });
+  }
+
+  // Função para salvar dados
+  _saveData(String time, String position) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String newRaceData = 'Tempo: $time, Posição: $position';
+    await prefs.setString('raceData', newRaceData);
+    setState(() {
+      _raceData = newRaceData;
+    });
+  }
+
+  // Função para adicionar nova corrida
+  _addRaceData() {
+    String time = _timeController.text;
+    String position = _positionController.text;
+    if (time.isNotEmpty && position.isNotEmpty) {
+      _saveData(time, position);
+      _timeController.clear();
+      _positionController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Race Tracker'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _timeController,
+              decoration: InputDecoration(labelText: 'Tempo da Corrida'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _positionController,
+              decoration: InputDecoration(labelText: 'Posição na Corrida'),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addRaceData,
+              child: Text('Adicionar Corrida'),
+            ),
+            SizedBox(height: 30),
+            Text(
+              'Última Corrida: $_raceData',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.0.11
+flutter pub getflutter run
